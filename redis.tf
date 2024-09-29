@@ -26,18 +26,22 @@ resource "aws_elasticache_subnet_group" "redis_subnet_group" {
   }
 }
 
-resource "aws_elasticache_cluster" "redis_cluster" {
-  cluster_id           = "my-redis-cluster"
-  engine               = "redis"
-  engine_version       = "7.0"
-  node_type            = "cache.t3.micro"
-  num_cache_nodes      = 1
-  parameter_group_name = "default.redis7"
-  subnet_group_name    = aws_elasticache_subnet_group.redis_subnet_group.id
-  security_group_ids   = [aws_security_group.redis_sg.id]
+resource "aws_elasticache_replication_group" "redis_replication_group" {
+  replication_group_id          = "my-redis-replication-group"
+  description                   = "Redis Replication Group"
+  engine                        = "redis"
+  engine_version                = "7.0"
+  node_type                     = "cache.t3.micro"
+  num_cache_clusters            = 2
+  automatic_failover_enabled    = true
+  multi_az_enabled              = true
+  preferred_cache_cluster_azs   = ["sa-east-1a", "sa-east-1b"]
+  parameter_group_name          = "default.redis7"
+  subnet_group_name             = aws_elasticache_subnet_group.redis_subnet_group.id
+  security_group_ids            = [aws_security_group.redis_sg.id]
 
   tags = {
-    Name = "My Redis Cluster"
+    Name = "Redis Replication Group"
   }
 }
 
@@ -61,10 +65,11 @@ resource "aws_security_group" "redis_sg" {
   }
 }
 
-output "redis_endpoint" {
-  value = aws_elasticache_cluster.redis_cluster.cache_nodes[0].address
+output "redis_primary_endpoint" {
+  value = aws_elasticache_replication_group.redis_replication_group.primary_endpoint_address
 }
 
 output "redis_port" {
-  value = aws_elasticache_cluster.redis_cluster.cache_nodes[0].port
+  value = aws_elasticache_replication_group.redis_replication_group.port
 }
+
