@@ -6,7 +6,7 @@ variable "aws-region" {
 
 terraform {
   backend "s3" {
-    bucket  = "tfstate-6soat"
+    bucket  = "6soat-tfstate"
     key     = "terraform-redis/terraform.tfstate"
     region  = "sa-east-1"
     encrypt = true
